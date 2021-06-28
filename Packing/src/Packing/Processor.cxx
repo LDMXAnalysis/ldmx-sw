@@ -34,7 +34,7 @@ void Processor::configure(framework::config::Parameters& ps) {
 
 const TranslatorPtr& Processor::getTranslator(const std::string& name) const {
   if (translatorCache_.find(name) == translatorCache_.end()) {
-    auto& t_it{translators_.begin()};
+    auto t_it{translators_.begin()};
     for (;t_it != translators_.end(); ++t_it) {
       if ((*t_it)->canTranslate(name))
         break;
@@ -45,7 +45,7 @@ const TranslatorPtr& Processor::getTranslator(const std::string& name) const {
       EXCEPTION_RAISE("NoTranslator",
           "Unable to find a translator that can translate '"+name+"'.");
     } else {
-      translatorCache_[name] = *t_it;
+      translatorCache_.emplace(name, *t_it);
     }
   }
   return translatorCache_.at(name);
@@ -53,4 +53,5 @@ const TranslatorPtr& Processor::getTranslator(const std::string& name) const {
 
 }  // namespace packing
 
-DECLARE_PRODUCER_NS(packing, Processor)
+// We _do not_ DELCARE_PRODUCER because this producer is not supposed to be used directly
+//    we only want to define shared functionalities for Unpacker/Packer

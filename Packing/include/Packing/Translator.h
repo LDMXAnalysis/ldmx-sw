@@ -16,7 +16,7 @@ typedef std::vector<unsigned char> BufferType;
 class Translator;
 
 /// The type for a pointer to a translator
-typedef std::unique_ptr<Translator> TranslatorPtr;
+typedef std::shared_ptr<Translator> TranslatorPtr;
 
 /// Type of generic building function
 typedef TranslatorPtr TranslatorBuilder(
@@ -55,7 +55,7 @@ class Translator {
    * @param[in] name A name of raw or digi object
    * @return true if this translator can translate it
    */
-  virtual bool canTranslate(const std::string& name) = 0;
+  virtual bool canTranslate(const std::string& name) const = 0;
 
   /**
    * The Translator is given the event bus to put its decoded data into.
@@ -81,7 +81,10 @@ class Translator {
    * @return buffer with encoded data
    */
   template <typename DigiType>
-  virtual BufferType encode(const DigiType& data) {
+  BufferType encode(const DigiType& data) {
+    std::string type_name{typeid(data).name()};
+    EXCEPTION_RAISE("NoImp",
+        "No translator available that has implemented encoding for '"+type_name+"'.");
     return {};
   }
 };  // Translator
@@ -98,7 +101,7 @@ class Translator {
 #define DECLARE_PACKING_TRANSLATOR(NS, CLASS)                            \
   packing::TranslatorPtr CLASS##Builder(                                 \
       const framework::config::Parameters& ps) {                         \
-    return std::make_unique<NS::CLASS>(ps);                              \
+    return std::make_shared<NS::CLASS>(ps);                              \
   }                                                                      \
   __attribute((constructor(205))) static void CLASS##Declare() {         \
     packing::Translator::declare(                                        \

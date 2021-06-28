@@ -1,6 +1,8 @@
 #ifndef PACKING_TRANSLATORS_HGCROC_H
 #define PACKING_TRANSLATORS_HGCROC_H
 
+#include "Recon/Event/HgcrocDigiCollection.h"
+
 #include "Packing/Translator.h"
 
 namespace packing {
@@ -15,16 +17,13 @@ class Hgcroc : public Translator {
   Hgcroc(const framework::config::Parameters& ps);
   virtual ~Hgcroc() {}
 
-  void decode(framework::Event& event) final override;
-  void encode(framework::Event& event) final override;
-
- private:
-  /// pass name regular expression
-  std::string pass_regex_;
-
-  /// object name regular expression
-  std::string object_regex_;
-
+  bool canTranslate(const std::string& name) const final override;
+  void decode(framework::Event& event, const BufferType& buffer) final override;
+  BufferType encode(const ldmx::HgcrocDigiCollection& data) {
+    EXCEPTION_RAISE("NoImp",
+        "Hgcroc Translator hasn't implemented encode yet.");
+    return {};
+  }
 };
 
 }  // namespace translators
