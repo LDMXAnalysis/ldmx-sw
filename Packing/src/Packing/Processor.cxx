@@ -17,8 +17,6 @@ void Processor::registerTranslator(const std::string& class_name,
 }
 
 void Processor::configure(framework::config::Parameters& ps) {
-  decode_ = ps.getParameter<bool>("decode");
-
   for (const auto& translator_params :
        ps.getParameter<std::vector<framework::config::Parameters>>(
            "translators")) {
@@ -34,13 +32,23 @@ void Processor::configure(framework::config::Parameters& ps) {
   }
 }
 
-void Processor::produce(framework::Event& event) {
-  for (const auto& t : translators_) {
-    if (decode_)
-      t->decode(event);
-    else
-      t->encode(event);
+const TranslatorPtr& Processor::getTranslator(const std::string& name) const {
+  if (translatorCache_.find(name) == translatorCache_.end()) {
+    auto& t_it{translators_.begin()};
+    for (;t_it != translators_.end(); ++t_it) {
+      if ((*t_it)->canTranslate(name))
+        break;
+    }  // loop over possible translators
+  
+    if (t_it == translators_.end()) {
+      // unable to find translator
+      EXCEPTION_RAISE("NoTranslator",
+          "Unable to find a translator that can translate '"+name+"'.");
+    } else {
+      translatorCache_[name] = *t_it;
+    }
   }
+  return translatorCache_.at(name);
 }
 
 }  // namespace packing

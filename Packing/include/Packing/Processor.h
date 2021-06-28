@@ -48,25 +48,37 @@ class Processor : public framework::Producer {
    *
    * @param[in] ps Parameters to configure
    */
-  void configure(framework::config::Parameters& ps) final override;
+  virtual void configure(framework::config::Parameters& ps); 
 
   /**
    * Actually do the packing (encoding) or unpacking (decoding).
    *
    * @param[in,out] event Event bus with inputs and outputs
    */
-  void produce(framework::Event& event) final override;
+  virtual void produce(framework::Event& event) = 0;
+
+ protected:
+  /**
+   * Get the translator that can translate the data stream
+   * of the input name.
+   *
+   * @throws Exception if we can't find a translator for
+   * the input name.
+   *
+   * @param[in] name Name of data stream we want to translate.
+   * @return TranslatorPtr to use to translate
+   */
+  const TranslatorPtr& getTranslator(const std::string& name) const;
 
  private:
   /// A map of all registered translators
   static std::map<std::string, TranslatorBuilder*> registeredTranslators_;
 
- private:
+  /// Cache of data stream names to translator ptrs
+  mutable std::map<std::string, const TranslatorPtr&> translatorCache_;
+ protected:
   /// List of translators to be translating on this run
   std::vector<TranslatorPtr> translators_;
-
-  /// Are we encoding or decoding?
-  bool decode_;
 
 };  // Processor
 
