@@ -7,17 +7,34 @@ void Unpacker::configure(framework::config::Parameters& ps) {
   // create the configured translators
   Processor::configure(ps);
 
-  raw_name_ = ps.getParameter<std::string>("raw_name");
-  raw_pass_ = ps.getParameter<std::string>("raw_pass");
+  raw_file_ = ps.getParameter<std::string>("raw_file");
+}
+
+void Unpacker::onProcessStart() {
+  file_ = TFile::Open(raw_file_);
+  tree_ = (TTree*)file_->Get(raw_tree_);
+  tree_->SetBranchAddress(raw_name_, &raw_data_);
+  i_entry_ = -1;
 }
 
 void Unpacker::produce(framework::Event& event) {
-  // The type of object we use as a data buffer is defined in Packing/Translator.h
-  const auto& raw_data{event.getMap<std::string,BufferType>(raw_name_,raw_pass_)};
+  if (i_entry_+1 > tree_->GetEntriesFast()) {
+    /// can we turn this into end run?
+    abortEvent();
+  }
 
-  for (const auto&[name, buffer] : raw_data) {
+  i_entry_++;
+  tree_->GetEntry(i_entry_);
+
+  for (const auto&[name, buffer] : raw_data_) {
     getTranslator(name)->decode(event, buffer);
   }  // loop over raw data packages
+}
+
+void Unpacker::onProcessEnd() {
+  file_->Close();
+  tree_ = nullptr;
+  i_entry_ = -2;
 }
 
 }  // namespace packing
