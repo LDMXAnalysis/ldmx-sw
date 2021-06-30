@@ -30,6 +30,9 @@ namespace hexareformat {
  * the hexactrl-sw borrowed from CMS. I have deleted the parts
  * of it that are used to write the raw data coming from the HGC ROC
  * in-order-to cleanup the code.
+ *
+ * Each instance of this class represents an individual sample 
+ * from each channel on both halves of the ROC.
  */
 class HGCROCv2RawData {
  public:

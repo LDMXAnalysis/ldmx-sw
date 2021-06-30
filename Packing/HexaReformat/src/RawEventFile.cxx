@@ -32,8 +32,12 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
   }
 
   for (int half{0}; half < 2; half++) {
-    for (int ichan{0}; ichan < N_READOUT_CHANNELS; ichan++) {
-      raw_data_["EcalPrecisionReadout"].append(rocdata.data(half).begin(), rocdata.data(half).end());
+    const std::vector<uint32_t>& sample_from_each_channel{rocdata.data(half)};
+    uint32_t header{sample_from_each_channel.at(0)};
+    for (int i_chan{0}; i_chan < N_READOUT_CHANNELS; i_chan++) {
+      // deduce "electronic ID" for this ROC and get the raw sample
+      unsigned int eid{i_chan+half*100};
+      intermediate_buffer_[eid].push_back(sample_from_each_channel.at(i_chan+1));
     }
   }
 }
@@ -50,10 +54,11 @@ void RawEventFile::endEvent() {
    * Translate to our expected buffer
    */
   uint64_t zero_supp_map{0x0000};
-  for (int eid{0}; eid <= N_READOUT_CHANNELS; eid++) {
+  unsigned int upper_lim_eid{200};
+  for (unsigned int eid{0}; eid <= upper_lim_eid; eid++) {
     if (intermediate_buffer_.find(eid) != intermediate_buffer_.end()) {
       // add 1 to zero-suppression map
-      zero_supp_map += 1 << (N_READOUT_CHANNELS-eid)
+      zero_supp_map += 1 << (upper_lim_eid-eid)
     }
   }
   buffer.push_back(zero_supp_map);
@@ -67,6 +72,10 @@ void RawEventFile::endEvent() {
    */
   data_tree_->Fill();
 
+  /**
+   * Reset intermediate data mapping
+   */
+  intermediate_map_.clear();
 }
 
 }  // hexareformat

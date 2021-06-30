@@ -1,6 +1,9 @@
 
 #include "Packing/Unpacker.h"
 
+#include "TFile.h"
+#include "TTree.h"
+
 namespace packing {
 
 void Unpacker::configure(framework::config::Parameters& ps) {
