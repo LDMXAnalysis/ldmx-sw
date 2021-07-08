@@ -15,6 +15,44 @@ bool Hgcroc::canTranslate(const std::string& name) const {
 
 void Hgcroc::decode(framework::Event& event, const BufferType& buffer) {
 
+/** Old Decoding Code - will be helpful for Hgcroc Translator
+  chip = rocdata.chip();
+  for (half = 0; half < 2; half++) {
+    // header = 0xaaBXCWADD101 : BXC 12 bit bunch crossing counter; WADD : 9 bit
+    // column address of the triggered event;
+    std::vector<uint32_t> data = rocdata.data(half);
+    uint32_t header = data[0];
+    uint32_t head = (header >> 24) & 0xff;
+    corruption = head == 0xAA || head == 0x9A ? 0 : 1;
+    bxcounter = (header >> 12) & 0xfff;
+    wadd = (header & 0xfff) >> 3;
+    for (int ichan = 0; ichan < N_READOUT_CHANNELS; ichan++) {
+      if (ichan == 18) {
+        channel = 37;
+        adc = (data[ichan + 1] >> 10) & 0x3ff;
+        tot = 0;
+        toa = 0;
+        outtree->Fill();
+        channel = 38;
+        adc = data[ichan + 1] & 0x3ff;
+        tot = 0;
+        toa = 0;
+        outtree->Fill();
+        continue;
+      }
+      if (ichan < 18)
+        channel = ichan;
+      else if (ichan > 19)
+        channel = ichan - 2;
+      else if (ichan == 19)
+        channel = 36;
+      adc = data[ichan + 1] & 0x3ff;
+      toa = (data[ichan + 1] >> 10) & 0x3ff;
+      tot = (data[ichan + 1] >> 20) & 0xfff;
+      outtree->Fill();
+    }
+  }
+ */
   // construct header from buffer (in 8-bit words)
   uint32_t header = buffer.at(0) + buffer.at(1) << 8 + buffer.at(2) << 16 + buffer.at(3) << 24;
 

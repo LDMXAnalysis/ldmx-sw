@@ -48,18 +48,6 @@ int main(int argc, char** argv) {
     if (m_printArgs) {
       std::cout << "input = " << m_input << std::endl;
       std::cout << "output = " << m_output << std::endl;
-      std::cout << "metaDataYaml = " << m_metaDataYaml << std::endl;
-      std::cout << "outputType = " << m_outputType << std::endl;
-      std::cout << std::endl;
-    }
-
-    if (vm.count("outputType") &&
-        (!(m_outputType == "root" || m_outputType == "unpacked" ||
-           m_outputType == "delayscan"))) {
-      std::cout << "Invalid choice for option 'outputType'. Allowed choices : "
-                   "'root', 'unpacked'" << std::endl;
-      throw po::validation_error(po::validation_error::invalid_option_value,
-                                 "outputType");
     }
   } catch (std::exception& e) {
     std::cerr << "Unhandled Exception reached the top of main: " << e.what()
@@ -67,16 +55,17 @@ int main(int argc, char** argv) {
     return 2;
   }
 
-  HGCROCv2RawData inroc0;
+  hexareformat::HGCROCv2RawData inroc0;
   std::ifstream infile{m_input.c_str()};
   boost::archive::binary_iarchive ia{infile};
 
-  RawEventFile out_file(m_output);
+  hexareformat::RawEventFile out_file(m_output);
   while (true) {
     try {
       ia >> inroc0;
       out_file.fill(inroc0);
     } catch (std::exception& e) {
+      std::cerr << e.what() << std::endl;
       break;
     }
   }

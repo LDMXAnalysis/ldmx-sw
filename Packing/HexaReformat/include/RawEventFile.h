@@ -7,15 +7,21 @@
 #include <TDirectory.h>
 #include <TTree.h>
 
-#include "Packing/HexaReformat/HGCROCv2RawData.h"
+#include "HGCROCv2RawData.h"
 
 /**
  * The number of readout channels is defined by the hardware
- * construction of a HGC ROC.
+ * construction of a HGC ROC as well as our DAQ readout specs.
+ *
+ * We have defined a method for keeping track of zero suppression
+ * along the DAQ path using a bit-map. Since we aren't using
+ * zero suppression currently in the hexactrl-sw DAQ, this ends
+ * up being a map of all ones.
+ *
+ * We have 38 channels that are always read out.
  */
 #define N_READOUT_CHANNELS 38
 
-namespace packing {
 namespace hexareformat {
 
 /**
@@ -30,7 +36,7 @@ class RawEventFile {
    * Constructor - open a root file for writing
    * for the input filename.
    */
-  RawEventFile(std::string filename)
+  RawEventFile(std::string filename);
 
   /**
    * Close up the root file
@@ -74,13 +80,9 @@ class RawEventFile {
   /// Event number
   int event_{-1};
   /// Run number
-  int run_;
-
-  /// Intermediat map from Electronics ID to Raw Data buffer
-  std::map<uint32_t,std::vector<uint32_t>> intermediate_buffer_;
+  int run_{333};
 };  // RawEventFile
 
 }  // hexareformat
-}  // packing
 
 #endif

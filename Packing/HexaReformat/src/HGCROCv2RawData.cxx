@@ -1,9 +1,8 @@
-#include <Packing/HexaReformat/HGCROCv2RawData.h>
+#include "HGCROCv2RawData.h"
 
 #include <algorithm>
 #include <iomanip>
 
-namespace packing {
 namespace hexareformat {
 
 std::ostream& operator<<(std::ostream& out, const HGCROCv2RawData& rawdata) {
@@ -25,4 +24,3 @@ std::ostream& operator<<(std::ostream& out, const HGCROCv2RawData& rawdata) {
 }
 
 }  // hexareformat
-}  // packing

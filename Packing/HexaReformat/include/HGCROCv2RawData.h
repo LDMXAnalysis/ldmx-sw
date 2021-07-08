@@ -15,8 +15,6 @@
  */
 #define HGCROC_DATA_BUF_SIZE 43 
 
-namespace packing {
-
 /**
  * @namespace hexareformat
  *
@@ -66,6 +64,5 @@ class HGCROCv2RawData {
 };  // HGCROCv2RawData
 
 }  // hexareformat
-}  // packing
 
 #endif

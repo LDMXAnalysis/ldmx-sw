@@ -10,7 +10,7 @@
 namespace packing {
 
 /// The type of buffer we are using to hold the raw data
-typedef std::vector<unsigned char> BufferType;
+typedef std::vector<uint64_t> BufferType;
 
 /// Forward declaration for generic building function
 class Translator;
