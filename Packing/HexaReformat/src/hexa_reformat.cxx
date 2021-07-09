@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     po::options_description generic_options("Generic options");
     generic_options.add_options()("help,h", "Print help messages")
       ("input,i", po::value<std::string>(&m_input), "input file name")
-      ("output,o", po::value<std::string>(&m_output)->default_value("toto.root"), "output file name")
+      ("output,o", po::value<std::string>(&m_output)->default_value("reformatted.root"), "output file name")
       ("printArgs", po::bool_switch(&m_printArgs)->default_value(false), "turn me on to print used arguments");
 
     po::options_description cmdline_options;
@@ -63,9 +63,13 @@ int main(int argc, char** argv) {
   while (true) {
     try {
       ia >> inroc0;
+      std::cout << inroc0 << std::endl;
       out_file.fill(inroc0);
-    } catch (std::exception& e) {
+    } catch (std::runtime_error& e) {
       std::cerr << e.what() << std::endl;
+      return 1;
+    } catch (std::exception& e) {
+      // boost serialization ends loop with thrown exception
       break;
     }
   }

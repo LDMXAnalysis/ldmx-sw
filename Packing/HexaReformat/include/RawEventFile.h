@@ -76,7 +76,7 @@ class RawEventFile {
   TTree* runs_tree_;
 
   /// The packed data
-  std::map<std::string,std::vector<uint64_t>> raw_data_;
+  std::vector<uint64_t> buffer_;
   /// Event number
   int event_{-1};
   /// Run number

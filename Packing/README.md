@@ -28,19 +28,18 @@ is slightly hierarchical.
 ```yaml
 ROOT TFile :
   ROOT TTree (LDMX_RawData) :
-    TBranch (run_number) : int
-    TBranch (event_number) : int
-    TBranch (time_stamp) : long int
+    TBranch (data_stream0) : std::vector<uint64_t>
+    TBranch (data_stream1) : std::vector<uint64_t>
     ... other event data ...
-    TBranch (data) : std::map<std::string,std::vector<unsigned char>>
   ROOT TTree (LDMX_Run) :
     TBranch (run_number) : int
     ... other run data ...
 ```
 
 The idea is to have this `RawEventFile` be a stepping-stone to the fully hierarchical `EventFile`.
-The majority of the data from the different subsystems is grouped into the `data` branch of `LDMX_RawData`
-into a `std::map` from a helpful name to a buffer for all the data from that stream for a single event.
+The majority of the data from the different subsystems is grouped into the various branches of `LDMX_RawData`.
+Each "data stream" is given a branch of `std::vector<uint64_t>` to copy its buffer for a single event into.
+The name of the branch is how a translator for that buffer is chosen.
 
 ## 2. Unpack
 Finish unpacking the encoded data by utilising chip-specific decoding routines.

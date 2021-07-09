@@ -26,7 +26,7 @@ RawEventFile::RawEventFile(std::string filename) {
 
   // TFile cleans up the TTrees that are created within it
   data_tree_ = new TTree("LDMX_RawData","Encoded raw data for LDMX");
-  data_tree_->Branch("data", &raw_data_);
+  data_tree_->Branch("EcalPrecisionHgcrocReadout", &buffer_);
   data_tree_->Branch("event", &event_);
   data_tree_->Branch("run", &run_);
 
@@ -54,10 +54,6 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
     event_ = rocdata.event();
   }
 
-  // create the empty vector after naming it if this
-  // is a new event
-  auto& buffer{raw_data_["EcalPrecisionReadout"]};
-
   /** Insert new header here
    * In the DAQ specs, the header is separated into 32-bit words,
    * so we do the same here. Below, I've copied down the structure
@@ -76,7 +72,7 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
     (2 & mask<6>::m << 1+12) + // 6 bit number of links ("halves" of ROC)
     (0 & mask<1>::m << 1) + // Reserved 0 bit
     (2*N_READOUT_CHANNELS & mask<12>::m << 0); // 12 bit total number of readout channels
-  buffer.push_back(word);
+  buffer_.push_back(word);
 
   unsigned int bx_id{0};
   try {
@@ -84,20 +80,24 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
     unsigned int bx_id_1{(rocdata.data(1).at(0) >> 12) & 0xfff};
     if (bx_id_0 == bx_id_1)
       bx_id = bx_id_0;
+    /** Don't worry about this for now...
     else
       throw std::runtime_error("Received two different BX IDs at once.");
+      */
   } catch (std::out_of_range&) {
     throw std::runtime_error("Received ROC data without a header.");
   }
 
+  /*
   if (bx_id == 0)
     throw std::runtime_error("Unable to deduce BX ID.");
+    */
 
   word = 
     (bx_id & mask<12>::m << 10+10) + // 12 bit bunch ID number
     (event_ & mask<10>::m << 10) + // 10 bit read request ID number (what will be an event number)
     (orbit & mask<10>::m << 0); // 10 bit bunch train/orbit counter
-  buffer.push_back(word);
+  buffer_.push_back(word);
 
   /** Insert link counters
    * We only have two links in this ROC,
@@ -120,7 +120,7 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
     (1 & mask<1>::m << 6+1) +
     (1 & mask<1>::m << 6) +
     (N_READOUT_CHANNELS & mask<6>::m << 0);
-  buffer.push_back(word);
+  buffer_.push_back(word);
 
   /** Go through both of our links
    * In our case, the two "half"s of the ROC are our two links.
@@ -139,9 +139,9 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
       (1 & mask<1>::m << 8+5) + // CRC OK bit
       (0 & mask<5>::m << 8) + // 5 bits of zero reserved
       (mask<8>::m); // last 8 bits of readout map (everything is being read out)
-    buffer.push_back(word);
+    buffer_.push_back(word);
     // rest of readout map (everything is being readout)
-    buffer.push_back(0xFFFF);
+    buffer_.push_back(0xFFFF);
     /** header word from ROC
      * 0101 | BX ID (12) | RREQ (6) | OR (3) | HE (3) | 0101
      */
@@ -152,21 +152,21 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
       (orbit & mask<3>::m << 4+3) + //lower 3 bits of orbit (bunch train)
       (0 & mask<3>::m << 4) + //any Hamming errors present?
       (0b0101); // 4 bits 0101
-    buffer.push_back(word);
+    buffer_.push_back(word);
 
     // copy in _data_ words from hexactrl-sw
     //  (we already decoded the header to get the BX ID above)
     const std::vector<uint32_t>& link_data{rocdata.data(half)};
-    buffer.insert(buffer.end(), link_data.begin()+1, link_data.end());
+    buffer_.insert(buffer_.end(), link_data.begin()+1, link_data.end());
 
     // ROC CRC Checksum
-    buffer.push_back(0xFFFF);
+    buffer_.push_back(0xFFFF);
   }
 
   /** CRC Checksum computed by FPGA
    * We don't compute one right now, so just an extra word of all ones)
    */
-  buffer.push_back(0xFFFF);
+  buffer_.push_back(0xFFFF);
 }
 
 void RawEventFile::endEvent() {
@@ -174,7 +174,7 @@ void RawEventFile::endEvent() {
   data_tree_->Fill();
 
   /// clear raw data from memory
-  raw_data_.clear();
+  buffer_.clear();
 }
 
 void RawEventFile::endRun() {
