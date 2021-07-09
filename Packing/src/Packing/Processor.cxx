@@ -32,7 +32,7 @@ void Processor::configure(framework::config::Parameters& ps) {
   }
 }
 
-const TranslatorPtr& Processor::getTranslator(const std::string& name) const {
+std::optional<TranslatorPtr> Processor::getTranslator(const std::string& name) const {
   if (translatorCache_.find(name) == translatorCache_.end()) {
     auto t_it{translators_.begin()};
     for (;t_it != translators_.end(); ++t_it) {
@@ -42,13 +42,12 @@ const TranslatorPtr& Processor::getTranslator(const std::string& name) const {
   
     if (t_it == translators_.end()) {
       // unable to find translator
-      EXCEPTION_RAISE("NoTranslator",
-          "Unable to find a translator that can translate '"+name+"'.");
+      return std::nullopt;
     } else {
       translatorCache_.emplace(name, *t_it);
     }
   }
-  return translatorCache_.at(name);
+  return std::optional<TranslatorPtr>{translatorCache_.at(name)};
 }
 
 }  // namespace packing

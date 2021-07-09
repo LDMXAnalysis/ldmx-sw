@@ -61,24 +61,6 @@ class Hgcroc : public Translator {
         "Hgcroc Translator hasn't implemented encode yet.");
     return {};
   }
-
- private:
-  /**
-   * Decode a single bunch.
-   *
-   * The raw data is readout on a bunch-by-bunch basis,
-   * so that is the fundamental unit of translation for us.
-   *
-   * @throws Exception if there is an error in decoding the format
-   *
-   * @param[in] i_word buffer iterator the bunch starts on
-   * @param[out] data container that holds the map of electronic IDs to words
-   * @return index of buffer 
-   */
-  std::vector<uint64_t>::iterator
-    decodeBunch(std::vector<uint64_t>::iterator start,
-        std::map<uint64_t, std::vector<ldmx::HgcrocDigiCollection::Sample>> data);
-
 };
 
 }  // namespace translators

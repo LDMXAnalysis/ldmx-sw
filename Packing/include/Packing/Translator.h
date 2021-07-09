@@ -27,7 +27,8 @@ namespace packing {
  */
 template <uint64_t N>
 struct mask {
-  static const uint64_t m = (1 << N) - 1;
+  static const uint64_t one{1};
+  static const uint64_t m = (one << N) - one;
 };
 
 /// The type of buffer we are using to hold the raw data

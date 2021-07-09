@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <optional>
 
 #include "Framework/EventProcessor.h"
 #include "Packing/Translator.h"
@@ -62,13 +63,10 @@ class Processor : public framework::Producer {
    * Get the translator that can translate the data stream
    * of the input name.
    *
-   * @throws Exception if we can't find a translator for
-   * the input name.
-   *
    * @param[in] name Name of data stream we want to translate.
-   * @return TranslatorPtr to use to translate
+   * @return TranslatorPtr to use to translate (std::nullopt if unavailable)
    */
-  const TranslatorPtr& getTranslator(const std::string& name) const;
+  std::optional<TranslatorPtr> getTranslator(const std::string& name) const;
 
  private:
   /// A map of all registered translators
@@ -76,7 +74,7 @@ class Processor : public framework::Producer {
 
   /// Cache of data stream names to translator ptrs
   mutable std::map<std::string, const TranslatorPtr&> translatorCache_;
- protected:
+
   /// List of translators to be translating on this run
   std::vector<TranslatorPtr> translators_;
 
