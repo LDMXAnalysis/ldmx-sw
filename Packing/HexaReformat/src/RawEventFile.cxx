@@ -16,10 +16,20 @@ namespace hexareformat {
  *  i & mask<N>::m
  *
  * To mask for the lowest N bits in i.
+ *
+ * Maximum mask is 63 bits because we are using
+ * a 64-bit wide integer and so we can't do
+ *  64 << 1
+ * without an error being thrown during comiple-time.
+ *
+ * @tparam N number of lowest-order bits to mask
  */
-template <unsigned int n_bits>
+template <uint64_t N>
 struct mask {
-  static const uint64_t m = (1 << n_bits) - 1;
+  /// one stored in same width as mask
+  static const uint64_t one{1};
+  /// value of mask
+  static const uint64_t m = (one << N) - one;
 };
 
 RawEventFile::RawEventFile(std::string filename, bool debug) : debug_{debug} {
@@ -149,7 +159,7 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
       (mask<8>::m); // last 8 bits of readout map (everything is being read out)
     buffer_.push_back(word);
     // rest of readout map (everything is being readout)
-    buffer_.push_back(0xFFFF);
+    buffer_.push_back(mask<32>::m);
     /** header word from ROC
      * 0101 | BX ID (12) | RREQ (6) | OR (3) | HE (3) | 0101
      */
@@ -170,13 +180,13 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
     buffer_.insert(buffer_.end(), link_data.begin()+1, link_data.end()-4);
 
     // ROC CRC Checksum
-    buffer_.push_back(0xFFFFFFFF);
+    buffer_.push_back(mask<32>::m);
   }
 
   /** CRC Checksum computed by FPGA
    * We don't compute one right now, so just an extra word of all ones)
    */
-  buffer_.push_back(0xFFFFFFFF);
+  buffer_.push_back(mask<32>::m);
 
   if (debug_) {
     std::cout << "Buffer: ";
