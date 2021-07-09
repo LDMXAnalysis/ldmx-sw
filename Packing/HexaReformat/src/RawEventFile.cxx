@@ -1,5 +1,6 @@
 #include <sstream>
 #include <cstring>
+#include <iomanip>
 #include "RawEventFile.h"
 
 namespace hexareformat {
@@ -21,7 +22,7 @@ struct mask {
   static const uint64_t m = (1 << n_bits) - 1;
 };
 
-RawEventFile::RawEventFile(std::string filename) {
+RawEventFile::RawEventFile(std::string filename, bool debug) : debug_{debug} {
   file_ = std::make_unique<TFile>(filename.c_str(), "RECREATE");
 
   // TFile cleans up the TTrees that are created within it
@@ -36,23 +37,27 @@ RawEventFile::RawEventFile(std::string filename) {
 }
 
 RawEventFile::~RawEventFile() {
+  endEvent(); // catch last event before closing
   endRun();
   file_->Write();
   file_->Close();
 }
 
 void RawEventFile::fill(HGCROCv2RawData rocdata) {
+  if (rocdata.event() != event_) {
+    if (event_ > 0) endEvent();
+    event_ = rocdata.event();
+  }
+
+  if (debug_) {
+    std::cout << std::endl << "RawEventFile::fill  " << rocdata << std::endl;
+  }
   // arbitrary ID values that are meaningless right now
   static const int fpga{42};
   static const int orbit{13};
   static const int roc{7};
   // current word we are using to help create buffer
   static uint64_t word;
-
-  if (rocdata.event() != event_) {
-    if (event_ > 0) endEvent();
-    event_ = rocdata.event();
-  }
 
   /** Insert new header here
    * In the DAQ specs, the header is separated into 32-bit words,
@@ -80,6 +85,9 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
     unsigned int bx_id_1{(rocdata.data(1).at(0) >> 12) & 0xfff};
     if (bx_id_0 == bx_id_1)
       bx_id = bx_id_0;
+
+    if (debug_)
+      std::cout << "BX IDs: " << bx_id_0 << " " << bx_id_1 << std::endl;
     /** Don't worry about this for now...
     else
       throw std::runtime_error("Received two different BX IDs at once.");
@@ -156,20 +164,31 @@ void RawEventFile::fill(HGCROCv2RawData rocdata) {
 
     // copy in _data_ words from hexactrl-sw
     //  (we already decoded the header to get the BX ID above)
+    //  and we drop the four commas that are used by the ROC
+    //  to signal the end of a group
     const std::vector<uint32_t>& link_data{rocdata.data(half)};
-    buffer_.insert(buffer_.end(), link_data.begin()+1, link_data.end());
+    buffer_.insert(buffer_.end(), link_data.begin()+1, link_data.end()-4);
 
     // ROC CRC Checksum
-    buffer_.push_back(0xFFFF);
+    buffer_.push_back(0xFFFFFFFF);
   }
 
   /** CRC Checksum computed by FPGA
    * We don't compute one right now, so just an extra word of all ones)
    */
-  buffer_.push_back(0xFFFF);
+  buffer_.push_back(0xFFFFFFFF);
+
+  if (debug_) {
+    std::cout << "Buffer: ";
+    for (auto const& w : buffer_) 
+      std::cout << std::hex << std::setfill('0') << std::setw(8) << w << "  ";
+    std::cout << std::dec << std::endl;
+  }
 }
 
 void RawEventFile::endEvent() {
+  if (debug_)
+    std::cout << "RawEventFile: End of event " << std::dec << event_ << std::endl;
   /// Fill data tree
   data_tree_->Fill();
 
@@ -178,6 +197,8 @@ void RawEventFile::endEvent() {
 }
 
 void RawEventFile::endRun() {
+  if (debug_)
+    std::cout << "RawEventFile: End of run " << std::dec << run_ << std::endl;
   runs_tree_->Fill();
 }
 

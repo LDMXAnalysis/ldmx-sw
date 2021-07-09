@@ -36,7 +36,7 @@ class RawEventFile {
    * Constructor - open a root file for writing
    * for the input filename.
    */
-  RawEventFile(std::string filename);
+  RawEventFile(std::string filename, bool debug);
 
   /**
    * Close up the root file
@@ -75,6 +75,8 @@ class RawEventFile {
   /// The tree with the run branches
   TTree* runs_tree_;
 
+  /// Should we print debug messages?
+  bool debug_;
   /// The packed data
   std::vector<uint64_t> buffer_;
   /// Event number

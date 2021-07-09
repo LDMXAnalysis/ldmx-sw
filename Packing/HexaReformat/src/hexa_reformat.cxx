@@ -17,7 +17,7 @@
 int main(int argc, char** argv) {
 
   std::string m_input, m_output;
-  bool m_printArgs = false;
+  bool m_debug = false;
   try {
     /** Define and parse the program options
      */
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     generic_options.add_options()("help,h", "Print help messages")
       ("input,i", po::value<std::string>(&m_input), "input file name")
       ("output,o", po::value<std::string>(&m_output)->default_value("reformatted.root"), "output file name")
-      ("printArgs", po::bool_switch(&m_printArgs)->default_value(false), "turn me on to print used arguments");
+      ("debug", po::bool_switch(&m_debug)->default_value(false), "Dump information to terminal to help see behavior.");
 
     po::options_description cmdline_options;
     cmdline_options.add(generic_options);
@@ -45,7 +45,8 @@ int main(int argc, char** argv) {
       return 1;
     }
 
-    if (m_printArgs) {
+    if (m_debug) {
+      std::cout << "In DEBUG mode..." << std::endl;
       std::cout << "input = " << m_input << std::endl;
       std::cout << "output = " << m_output << std::endl;
     }
@@ -59,18 +60,19 @@ int main(int argc, char** argv) {
   std::ifstream infile{m_input.c_str()};
   boost::archive::binary_iarchive ia{infile};
 
-  hexareformat::RawEventFile out_file(m_output);
+  hexareformat::RawEventFile out_file(m_output, m_debug);
   while (true) {
     try {
       ia >> inroc0;
-      std::cout << inroc0 << std::endl;
       out_file.fill(inroc0);
-    } catch (std::runtime_error& e) {
-      std::cerr << e.what() << std::endl;
-      return 1;
-    } catch (std::exception& e) {
-      // boost serialization ends loop with thrown exception
+    } catch (boost::archive::archive_exception&) {
+      // nothing more from archive to read
+      if (m_debug)
+        std::cout << "Received End-Of-File from Boost archive." << std::endl;
       break;
+    } catch (std::exception& e) {
+      std::cerr << "ERROR: " << e.what() << std::endl;
+      return 1;
     }
   }
 
