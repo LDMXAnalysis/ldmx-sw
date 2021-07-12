@@ -4,7 +4,13 @@ Attributes
 ----------
 skeleton : str
     Multi-line string holding format for basic GDML file.
+material_options : dict
+    Dictionary of material names to their GDML definitions
+    Materials must be named 'hunk_material' so that it can be
+    referenced by the hunk volume
 """
+
+import os
 
 skeleton = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE gdml>
@@ -102,10 +108,11 @@ def write(path, material, hunk_depth, hunk_transverse) :
             hunk_material = material_options[material],
             hunk_depth = hunk_depth,
             hunk_transverse = hunk_transverse,
-            world_depth = hunk_depth+10,
+            world_depth = hunk_depth+10, #extra space for primary
             world_transverse = hunk_transverse+1
             ))
+    return os.path.realpath(path)
 
 if __name__ == '__main__' :
     import sys
-    write('test_write.gdml',sys.argv[1], 500, 100)
+    print(write('test_write.gdml',sys.argv[1], 500, 100))
