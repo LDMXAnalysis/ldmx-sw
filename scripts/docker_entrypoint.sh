@@ -34,16 +34,4 @@ do
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$_external_path
 done
 
-# go to first argument
-cd "$1"
-
-# run the rest of the arguments depending on the command
-if [[ "$2" =~ .*".py" ]]
-then
-    # command ends in '.py'
-    #   assume that we are running the ldmx application
-    fire "${@:2}"
-else
-    # otherwise just run everything like normal
-    eval "${@:2}"
-fi
+fire /home/config.py $@
