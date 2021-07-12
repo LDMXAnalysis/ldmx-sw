@@ -48,7 +48,7 @@ skeleton = """<?xml version="1.0" encoding="UTF-8"?>
             
             <physvol name="hunk">
                 <volumeref ref="hunk_W_volume"/>
-                <position name="center" unit="mm" x="0" y="0" z="0"/>
+                <position name="center" unit="mm" x="0" y="0" z="{hunk_depth}/2."/>
             </physvol> 
 
             <auxiliary auxtype="DetElem" auxvalue="Top"/>
@@ -108,7 +108,7 @@ def write(path, material, hunk_depth, hunk_transverse) :
             hunk_material = material_options[material],
             hunk_depth = hunk_depth,
             hunk_transverse = hunk_transverse,
-            world_depth = hunk_depth+10, #extra space for primary
+            world_depth = 2*hunk_depth+10, #extra space for primary
             world_transverse = hunk_transverse+1
             ))
     return os.path.realpath(path)
