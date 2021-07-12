@@ -22,3 +22,6 @@
 [submodule "TrigScint"]
 	path = TrigScint
 	url = https://github.com/LDMX-Software/TrigScint
+[submodule "Trigger"]
+	path = Trigger
+	url = https://github.com/LDMX-Software/Trigger.git

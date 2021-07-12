@@ -104,6 +104,9 @@ if(BUILD_ALL OR BUILD_RECON_ONLY)
     # This module contains all things trigger scintillator
     add_subdirectory(TrigScint)
 
+    # This module contains trigger algorithms.
+    add_subdirectory(Trigger/Algo)
+
 endif()
 
 if(BUILD_ALL OR BUILD_SIM_ONLY)
