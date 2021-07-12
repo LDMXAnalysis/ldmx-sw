@@ -42,4 +42,5 @@ foreach(detector_dir ${detector_dirs})
   endif()
 endforeach()
 
+set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 setup_python(package_name ${PYTHON_PACKAGE_NAME}/Detectors)
