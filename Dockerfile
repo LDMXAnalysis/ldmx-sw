@@ -15,8 +15,5 @@ RUN mkdir /code/build &&\
     ldconfig /usr/local/lib
 
 COPY ./scripts/docker_entrypoint.sh /home/docker_entrypoint.sh
-COPY ./config.py /home/config.py
 RUN chmod 755 /home/docker_entrypoint.sh
-# We assume that the current working directory has been mounted to /work
-WORKDIR /work
 ENTRYPOINT ["/home/docker_entrypoint.sh"]
